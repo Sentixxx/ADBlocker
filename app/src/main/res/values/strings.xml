@@ -1,3 +1,23 @@
 <resources>
-    <string name="app_name">ADBlocker</string>
+    <string name="app_name">广告助手</string>
+    <string name="title_home">状态</string>
+    <string name="title_settings">设置</string>
+    <string name="title_about">关于</string>
+    <string name="status_title">服务状态</string>
+    <string name="text_instructions">为保证程序能正常工作，请检查以下设置：</string>
+    <string name="text_accessibility_permission">1. 在\"无障碍\"设置里，打开\"广告助手 - 无障碍服务\"。</string>
+    <string name="text_power_permission">2. 在\"电池优化\"设置里，设置\"广告助手\"为\"不优化\"。</string>
+    <string name="text_rom_battery">3. 在电池管理里，设置\"广告助手\"为\"允许后台耗电\"。设置方法因品牌不同有所差异，比如VIVO系统为：\"设置\" -> \"电池\" -> \"后台耗电管理\"。</string>
+    <string name="text_task_manager">4. 在\"任务管理\"里，锁定\"广告助手\"。</string>
+
+    <string name="button_setting">设置</string>
+    <string name="adblocker_service_label">广告助手-无障碍服务</string>
+    <string name="adblocker_service_description">\"广告助手\"是基于安卓系统的无障碍服务来实现自动跳过广告功能的，为了保证程序能正常工作，打开此服务。</string>
+    <string name="about_app_introduction">
+        \"广告助手\"可以帮助用户自动跳过一些应用的开屏广告，基于Android的无障碍服务实现。
+        \n\n程序使用以下方法跳过开屏广告：
+        \n\关键字。在应用中查找含有关键字的按钮，如果发现了对应的按钮，自动帮用户点击从而跳过广告；
+    </string>
+
+    <string name="about_copyright">Copyright © 2024 Miaoxin Chen</string>
 </resources>
