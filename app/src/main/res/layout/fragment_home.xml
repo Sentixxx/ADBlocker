@@ -59,22 +59,12 @@
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <ImageButton
-                    android:id="@+id/button_accessibility_permission"
-                    style="@style/Widget.AppCompat.Button.Small"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:layout_marginBottom="8dp"
-                    android:src="@drawable/ic_configuration"
-                    android:text="@string/button_setting"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/text_accessibility_permission" />
-
-                <ImageView
-                    android:id="@+id/image_accessibility_permission"
+                    android:id="@+id/image_button_accessibility_permission"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:src="@drawable/ic_wrong"
+                    android:background="@android:color/transparent"
+                    android:text="@string/button_setting"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="@+id/guideline_accessibility_permission"
@@ -112,22 +102,12 @@
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <ImageButton
-                    android:id="@+id/button_power_permission"
-                    style="@style/Widget.AppCompat.Button.Small"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:layout_marginBottom="8dp"
-                    android:src="@drawable/ic_configuration"
-                    android:text="@string/button_setting"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/text_power_permission" />
-
-                <ImageView
-                    android:id="@+id/image_power_permission"
+                    android:id="@+id/image_button_power_permission"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:src="@drawable/ic_wrong"
+                    android:background="@android:color/transparent"
+                    android:text="@string/button_setting"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="@+id/guideline_power_permission"

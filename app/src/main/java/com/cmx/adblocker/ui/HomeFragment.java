@@ -23,18 +23,13 @@ import java.util.Objects;
 public class HomeFragment extends Fragment {
 
     private static final String TAG = "HomeFragment";
-
-    private ImageView imageAccessibilityPermission;
-    private ImageView imagePowerPermission;
-
+    private ImageButton btAccessibilityPermission;
+    private ImageButton btPowerPermission;
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_home,container,false);
 
-        imageAccessibilityPermission = root.findViewById(R.id.image_accessibility_permission);
-        imagePowerPermission = root.findViewById(R.id.image_power_permission);
-
-        ImageButton btAccessibilityPermission = root.findViewById(R.id.button_accessibility_permission);
-        ImageButton btPowerPermission = root.findViewById(R.id.button_power_permission);
+        btAccessibilityPermission = root.findViewById(R.id.image_button_accessibility_permission);
+        btPowerPermission = root.findViewById(R.id.image_button_power_permission);
 
         updatePermissionsStatus();
         btAccessibilityPermission.setOnClickListener(new View.OnClickListener() {
@@ -75,11 +70,11 @@ public class HomeFragment extends Fragment {
     private void updatePermissionsStatus() {
         // 更新辅助功能权限状态
         boolean hasAccessibilityPermission = checkAccessibilityPermission();
-        imageAccessibilityPermission.setImageResource(hasAccessibilityPermission ? R.drawable.ic_right : R.drawable.ic_wrong);
+        btAccessibilityPermission.setImageResource(hasAccessibilityPermission ? R.drawable.ic_right : R.drawable.ic_wrong);
 
         // 更新电源优化权限状态
         boolean ifPowerOptimized = checkPowerPermission();
-        imagePowerPermission.setImageResource((ifPowerOptimized ? R.drawable.ic_right : R.drawable.ic_wrong));
+        btPowerPermission.setImageResource((ifPowerOptimized ? R.drawable.ic_right : R.drawable.ic_wrong));
     }
 
     private boolean checkAccessibilityPermission() {
