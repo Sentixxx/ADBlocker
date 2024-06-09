@@ -57,6 +57,30 @@ public class Settings {
         }
     }
 
+    private boolean ifSkipAdByWord;
+    public boolean getIfSkipAdByWord() {
+        return ifSkipAdByWord;
+    }
+    public void setIfSkipAdByWord(boolean ifSkipAdByWord) {
+        if(this.ifSkipAdByWord != ifSkipAdByWord) {
+            this.ifSkipAdByWord = ifSkipAdByWord;
+            meditor.putBoolean(SKIP_AD_NOTIFICATION,ifSkipAdByWord);
+            meditor.apply();
+        }
+    }
+
+    private boolean ifSkipAdByPos;
+    public boolean getIfSkipAdByPos() {
+        return ifSkipAdByPos;
+    }
+    public void setIfSkipAdByPos(boolean ifSkipAdByPos) {
+        if(this.ifSkipAdByPos != ifSkipAdByPos) {
+            this.ifSkipAdByPos = ifSkipAdByPos;
+            meditor.putBoolean(SKIP_AD_NOTIFICATION,ifSkipAdByPos);
+            meditor.apply();
+        }
+    }
+
 
     private int SkipAdDuration;
 
@@ -108,6 +132,8 @@ public class Settings {
         mprefer = ADBlockerApp.getAppContext().getSharedPreferences(PREFERENCE_NAME, Activity.MODE_PRIVATE);
         mgson = new Gson();
         meditor = mprefer.edit();
+        ifSkipAdByPos = mprefer.getBoolean("skip_ad_by_pos",false);
+        ifSkipAdByWord = mprefer.getBoolean("skip_ad_by_word",true);
         ifSkipAdNotification = mprefer.getBoolean(SKIP_AD_NOTIFICATION,true);
         SkipAdDuration = mprefer.getInt(SKIP_AD_DURATION,4);
         String json = mprefer.getString(KEY_WORDS_LIST,"[\"跳过\"]");

@@ -1,11 +1,8 @@
 package com.cmx.adblocker;
 
-import android.accessibilityservice.AccessibilityButtonController;
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.GestureDescription;
 import android.annotation.SuppressLint;
-import android.content.ClipData;
-import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -14,6 +11,7 @@ import android.content.pm.ResolveInfo;
 import android.graphics.Path;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
@@ -29,22 +27,19 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.inputmethod.InputMethodInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.RequiresApi;
+
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public class ADBlockerServiceCore {
 
@@ -56,7 +51,7 @@ public class ADBlockerServiceCore {
     private Settings mSetting;
     private UsrPresentReceiver usrPresentReceiver;
     private PkgChangeReceiver pkgChangeReceiver;
-    private Handler recvHandler;
+    public Handler recvHandler;
 
 
     private ScheduledExecutorService taskExecutor;
@@ -169,6 +164,165 @@ public class ADBlockerServiceCore {
 
     }
 
+    @SuppressLint("ClickableViewAccessibility")
+    private void showDialog() {
+        if(isShow) {
+            return;
+        }
+
+        final WindowManager wm = (WindowManager) service.getSystemService(Context.WINDOW_SERVICE);
+        final DisplayMetrics metrics = new DisplayMetrics();
+        wm.getDefaultDisplay().getMetrics(metrics);
+
+        boolean isPortrait = metrics.widthPixels < metrics.heightPixels;
+        final int width = isPortrait ? metrics.widthPixels : metrics.heightPixels;
+        final int height = isPortrait ? metrics.heightPixels : metrics.widthPixels;
+
+        final PkgPosDescription posDescription = new PkgPosDescription();
+
+        final LayoutInflater inflater = LayoutInflater.from(service);
+        final View view = inflater.inflate(R.layout.activity_customization, null);
+        final TextView tvPkgName = view.findViewById(R.id.tv_package_name);
+        final TextView tvActName = view.findViewById(R.id.tv_activity_name);
+        final TextView tvPosInfo = view.findViewById(R.id.tv_position_info);
+        Button btQuit = view.findViewById(R.id.button_quit);
+        final Button btAddPos = view.findViewById(R.id.button_add_position);
+        Button btShowTarget = view.findViewById(R.id.button_show_target);
+
+        final ImageView ivTarget = new ImageView(service);
+        ivTarget.setImageResource(R.drawable.ic_target);
+
+        final WindowManager.LayoutParams params = new WindowManager.LayoutParams();
+        params.type = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY;
+        params.format = PixelFormat.TRANSLUCENT;
+        params.gravity = Gravity.TOP | Gravity.START;
+        params.flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+        params.width = width;
+        params.height = height / 5;
+        params.x = metrics.widthPixels - params.width;
+        params.y = metrics.heightPixels - params.height;
+        params.alpha = 0.8f;
+
+
+        final WindowManager.LayoutParams targetParams = new WindowManager.LayoutParams();
+        targetParams.type = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY;
+        targetParams.format = PixelFormat.TRANSLUCENT;
+        targetParams.gravity = Gravity.TOP | Gravity.START;
+        targetParams.flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+        targetParams.width = width / 10;
+        targetParams.height = width / 10;
+        targetParams.x = (metrics.widthPixels - targetParams.width) / 2;
+        targetParams.y = (metrics.heightPixels - targetParams.height) / 2;
+        targetParams.alpha = 0f;
+
+        view.setOnTouchListener(new View.OnTouchListener(){
+            int x = 0;
+            int y = 0;
+
+
+            @Override
+            public boolean onTouch(View v,MotionEvent event){
+                switch(event.getAction()){
+                    case MotionEvent.ACTION_DOWN:
+                        x = (int)event.getRawX();
+                        y = (int)event.getRawY();
+                        break;
+                    case MotionEvent.ACTION_MOVE:
+                        params.x = Math.round(params.x + event.getRawX() - x);
+                        params.y = Math.round(params.y + event.getRawY() - y);
+                        x = Math.round(event.getRawX());
+                        y = Math.round(event.getRawY());
+                        wm.updateViewLayout(view,params);
+                        break;
+                }
+                return true;
+            }
+        });
+
+        ivTarget.setOnTouchListener(new View.OnTouchListener(){
+            int x = 0,y = 0, width = targetParams.width / 2, height = targetParams.height / 2;
+            @Override
+            public boolean onTouch(View v,MotionEvent event){
+                switch(event.getAction()){
+                    case MotionEvent.ACTION_DOWN:
+                        btAddPos.setEnabled(true);
+                        targetParams.alpha = 0.9f;
+                        wm.updateViewLayout(ivTarget, targetParams);
+                        x = Math.round(event.getRawX());
+                        y = Math.round(event.getRawY());
+                        break;
+                    case MotionEvent.ACTION_MOVE:
+                        targetParams.x = Math.round(targetParams.x + (event.getRawX() - x));
+                        targetParams.y = Math.round(targetParams.y + (event.getRawY() - y));
+                        x = Math.round(event.getRawX());
+                        y = Math.round(event.getRawY());
+                        wm.updateViewLayout(ivTarget, targetParams);
+                        posDescription.pkgName = curPkgName;
+                        posDescription.actName = curActName;
+                        posDescription.x = targetParams.x + width;
+                        posDescription.y = targetParams.y + height;
+                        tvPkgName.setText(posDescription.pkgName);
+                        tvActName.setText(posDescription.actName);
+                        tvPosInfo.setText("X轴：" + posDescription.x + "    " + "Y轴：" + posDescription.y );
+                        break;
+                case MotionEvent.ACTION_UP:
+                    targetParams.alpha = 0.5f;
+                    wm.updateViewLayout(ivTarget, targetParams);
+                    break;
+                }
+                return true;
+            }
+        });
+
+        btShowTarget.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Button button = (Button) v;
+                if (targetParams.alpha == 0) {
+                    posDescription.pkgName = curPkgName;
+                    posDescription.actName= curActName;
+                    targetParams.alpha = 0.5f;
+                    targetParams.flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+                    wm.updateViewLayout(ivTarget, targetParams);
+                    tvPkgName.setText(posDescription.pkgName);
+                    tvActName.setText(posDescription.actName);
+                    button.setText("隐藏准心");
+                } else {
+                    targetParams.alpha = 0f;
+                    targetParams.flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
+                    wm.updateViewLayout(ivTarget, targetParams);
+                    btAddPos.setEnabled(false);
+                    button.setText("显示准心");
+                }
+            }
+        });
+
+        btAddPos.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mapPkgPos.put(posDescription.pkgName, new PkgPosDescription(posDescription));
+                btAddPos.setEnabled(false);
+                tvPkgName.setText(posDescription.pkgName+ " (以下坐标数据已保存)");
+                // save
+                Settings.getInstance().setPkgPos(mapPkgPos);
+            }
+        });
+
+        btQuit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                wm.removeViewImmediate(view);
+                wm.removeViewImmediate(ivTarget);
+                isShow = false;
+            }
+        });
+
+        wm.addView(view,params);
+        wm.addView(ivTarget, targetParams);
+        isShow = true;
+    }
+
+
     public void initReceiver() {
         usrPresentReceiver =  new UsrPresentReceiver();
         service.registerReceiver(usrPresentReceiver, new IntentFilter(Intent.ACTION_USER_PRESENT));
@@ -197,7 +351,7 @@ public class ADBlockerServiceCore {
                     mapPkgPos = mSetting.getPkgPos();
                     break;
                 case ADBlockerService.ACTION_ACTIVITY_CUSTOMIZATION:
-                    //showDialog();
+                    showDialog();
                     break;
                 case ADBlockerService.ACTION_STOP_SERVICE:
                     service.disableSelf();
@@ -307,18 +461,17 @@ public class ADBlockerServiceCore {
     核心功能
     模拟点击
      */
-    private boolean click_simulate(int x, int y, int duration) {
+    private void click_simulate(int x, int y, int duration) {
         Path path = new Path();
         path.moveTo(x, y);
         GestureDescription.Builder builder = new GestureDescription.Builder().addStroke(new GestureDescription.StrokeDescription(path, 0, duration));
-        return service.dispatchGesture(builder.build(), null, null);
+        service.dispatchGesture(builder.build(), null, null);
     }
-
 
     private void startSkipAdProcess() {
         skipAdRunning = true;
-        skipAdByPos = true;
-        skipAdByWord = true;
+        skipAdByPos = mSetting.getIfSkipAdByPos();
+        skipAdByWord = mSetting.getIfSkipAdByWord();
 
         recvHandler.removeMessages(ADBlockerService.ACTION_STOP_SKIPAD);
         recvHandler.sendEmptyMessageDelayed(ADBlockerService.ACTION_STOP_SKIPAD, mSetting.getSkipAdDuration() * 1000);

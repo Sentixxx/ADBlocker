@@ -87,6 +87,30 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 }
             });
         }
+
+        CheckBoxPreference skipAdByWord = findPreference("skip_ad_by_word");
+        if(skipAdByWord != null) {
+            skipAdByWord.setChecked(mSetting.getIfSkipAdByWord());
+            skipAdByWord.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(@NonNull Preference preference, Object newValue) {
+                    mSetting.setIfSkipAdByWord((Boolean) newValue);
+                    return true;
+                }
+            });
+        }
+
+        CheckBoxPreference skipAdByPos = findPreference("skip_ad_by_pos");
+        if(skipAdByPos != null) {
+            skipAdByPos.setChecked(mSetting.getIfSkipAdByPos());
+            skipAdByPos.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(@NonNull Preference preference, Object newValue) {
+                    mSetting.setIfSkipAdByPos((Boolean) newValue);
+                    return true;
+                }
+            });
+        }
         final SeekBarPreference skipAdDuration = findPreference("skip_ad_duration");
         if (skipAdDuration != null) {
             skipAdDuration.setMax(10);

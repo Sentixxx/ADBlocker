@@ -59,7 +59,12 @@ public class ADBlockerService extends AccessibilityService {
     }
     public static boolean dispatchAction(int action) {
         final ADBlockerService service = serviceRef != null ? serviceRef.get() : null;
-        return service != null;
+        if(service == null || service.serviceCore == null || service.serviceCore.recvHandler == null) {
+            return false;
+        }
+        Log.e("ADBlockerService", "dispatchAction: " + action);
+        service.serviceCore.recvHandler.sendEmptyMessage(action);
+        return true;
     }
 
     public static boolean isServiceRunning() {
