@@ -104,6 +104,7 @@ public class ADBlockerServiceCore {
             if (event == null) {
                 return;
             }
+            Log.i(TAG, AccessibilityEvent.eventTypeToString(event.getEventType()));
             String tmpPkgName = event.getPackageName() == null ? "" : event.getPackageName().toString();
             String tmpActName = event.getClassName() == null ? "" : event.getClassName().toString();
             switch (event.getEventType()) {
@@ -138,24 +139,71 @@ public class ADBlockerServiceCore {
                             }
                         }
                     }
-
-                    //skip by position
-//                    Log.e(TAG, "skipAdByPos");
                     if(skipAdByWord) {
-//                        Log.e(TAG, "skipAdByWord");
+                        Log.e(TAG, "skipAdByWord");
                         final AccessibilityNodeInfo root = service.getRootInActiveWindow();
                         taskExecutor.execute(() -> iterateNodesToSkipAd(root));
+                    }
+                    if(skipAdByPos) {
+                        Log.e(TAG, "skipAdByPos");
+                        skipAdByPos = false;
+                        PkgPosDescription pkgPosDescription = mapPkgPos.get(curPkgName);
+                        if(pkgPosDescription != null) {
+                            final WindowManager wm = (WindowManager) service.getSystemService(Context.WINDOW_SERVICE);
+                            final DisplayMetrics metrics = new DisplayMetrics();
+                            wm.getDefaultDisplay().getMetrics(metrics);
+                            final int x = pkgPosDescription.x;
+                            final int y = pkgPosDescription.y;
+                            final int duration = PACKAGE_POSITION_CLICK_FIRST_DELAY;
+                            taskExecutor.execute(() -> {
+                                click_simulate(x, y, duration);
+                                for (int i = 0; i < PACKAGE_POSITION_CLICK_RETRY; i++) {
+                                    try {
+                                        Thread.sleep(PACKAGE_POSITION_CLICK_RETRY_INTERVAL);
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    }
+                                    click_simulate(x, y, duration);
+                                }
+                            });
+                            showToastInIntentService("正在根据位置跳过广告...");
+                        }
                     }
                     break;
                 case AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED:
                     if(!setPackages.contains(tmpPkgName)) {
                         break;
                     }
-
+                    if(skipAdByPos) {
+                        PkgPosDescription pkgPosDescription = mapPkgPos.get(curPkgName);
+                        if(pkgPosDescription != null) {
+                            showToastInIntentService("正在根据位置跳过广告...");
+                            final WindowManager wm = (WindowManager) service.getSystemService(Context.WINDOW_SERVICE);
+                            final DisplayMetrics metrics = new DisplayMetrics();
+                            wm.getDefaultDisplay().getMetrics(metrics);
+                            final int x = pkgPosDescription.x;
+                            final int y = pkgPosDescription.y;
+                            final int duration = PACKAGE_POSITION_CLICK_FIRST_DELAY;
+                            taskExecutor.execute(() -> {
+                                click_simulate(x, y, duration);
+                                for (int i = 0; i < PACKAGE_POSITION_CLICK_RETRY; i++) {
+                                    try {
+                                        Thread.sleep(PACKAGE_POSITION_CLICK_RETRY_INTERVAL);
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    }
+                                    click_simulate(x, y, duration);
+                                }
+                            });
+                        }
+                    }
                     if(skipAdByWord) {
                         final AccessibilityNodeInfo root = event.getSource();
                         taskExecutor.execute(() -> iterateNodesToSkipAd(root));
                     }
+                    break;
+                default:
+                    Log.i(TAG, AccessibilityEvent.eventTypeToString(event.getEventType()));
                     break;
             }
         } catch (Exception e) {
@@ -362,7 +410,7 @@ public class ADBlockerServiceCore {
     }
 
     private void iterateNodesToSkipAd(AccessibilityNodeInfo root) {
-        Log.e(TAG, "iterateNodesToSkipAd");
+//        Log.e(TAG, "iterateNodesToSkipAd");
         ArrayList<AccessibilityNodeInfo> vis = new ArrayList<>();
         vis.add(root);
         ArrayList<AccessibilityNodeInfo> next = new ArrayList<>();
@@ -372,14 +420,14 @@ public class ADBlockerServiceCore {
         AccessibilityNodeInfo node;
         boolean handled = false;
 //        Log.e(TAG, "skipAdRunning: " + skipAdRunning);
-        Log.e(TAG, "num: " + num);
+//        Log.e(TAG, "num: " + num);
         while(skipAdRunning && index < num) {
             node = vis.get(index++);
             if(node == null) {
-                Log.e(TAG, "node is null");
+//                Log.e(TAG, "node is null");
             }
             if(node != null) {
-                Log.e(TAG, "node is not null");
+//                Log.e(TAG, "node is not null");
                 handled = skipAdByWord(node);
                 if(handled) {
                     node.recycle();
@@ -421,9 +469,8 @@ public class ADBlockerServiceCore {
 //        Log.e(TAG, "skipAdByWord");
         boolean isFound = false;
         for (String keyWord : keyWords) {
-            Log.e(TAG, "keyWord: " + keyWord);
-            Log.e(TAG, "description: " + description);
-            Log.e(TAG, "text: " + text);
+//            Log.e(TAG, "description: " + description);
+//            Log.e(TAG, "text: " + text);
             if (text.toString().length() <= keyWord.length() + 6 && text.toString().contains(keyWord) && !text.toString().equals(pkgName)) {
                 isFound = true;
             }
@@ -435,8 +482,9 @@ public class ADBlockerServiceCore {
             }
         }
         if (isFound) {
+            Log.e(TAG, "Skip by word: " + node.toString() + " " + node.getClassName().toString() + " " + node.getText() + " " + node.getContentDescription());
             String nodeDesc = describeAccessibilityNode(node);
-            Log.d(TAG, "Skip by word: " + nodeDesc);
+//            Log.d(TAG, "Skip by word: " + nodeDesc);
             if(clickedWidgets.contains(nodeDesc)) {
                 Log.d(TAG, "Skip by word: " + nodeDesc + " already clicked");
             }
@@ -445,11 +493,13 @@ public class ADBlockerServiceCore {
 
                 showToastInIntentService("正在根据关键字跳过广告...");
                 boolean clicked = node.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-                boolean success = false;
                 if (!clicked) {
                     Rect rect = new Rect();
                     node.getBoundsInScreen(rect);
                     click_simulate(rect.centerX(), rect.centerY(), 20);
+                }
+                else {
+                    Log.e(TAG, "Click Failed!");
                 }
                 return true;
             }
@@ -472,6 +522,7 @@ public class ADBlockerServiceCore {
         skipAdRunning = true;
         skipAdByPos = mSetting.getIfSkipAdByPos();
         skipAdByWord = mSetting.getIfSkipAdByWord();
+        clickedWidgets.clear();
 
         recvHandler.removeMessages(ADBlockerService.ACTION_STOP_SKIPAD);
         recvHandler.sendEmptyMessageDelayed(ADBlockerService.ACTION_STOP_SKIPAD, mSetting.getSkipAdDuration() * 1000);
@@ -490,6 +541,7 @@ public class ADBlockerServiceCore {
     public void onUnbind(Intent intent) {
         try {
             service.unregisterReceiver(usrPresentReceiver);
+            service.unregisterReceiver(pkgChangeReceiver);
         } catch (Throwable e) {
             e.printStackTrace();
         }
