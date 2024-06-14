@@ -15,7 +15,6 @@
             <action android:name="android.intent.action.MAIN" />
         </intent>
     </queries>
-
     <application
         android:name="com.cmx.adblocker.ADBlockerApp"
         android:largeHeap="true"

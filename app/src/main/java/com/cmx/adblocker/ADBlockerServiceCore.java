@@ -239,6 +239,8 @@ public class ADBlockerServiceCore {
 
         final ImageView ivTarget = new ImageView(service);
         ivTarget.setImageResource(R.drawable.ic_target);
+        //设置颜色
+        ivTarget.setColorFilter(0xffff0033);
 
         final WindowManager.LayoutParams params = new WindowManager.LayoutParams();
         params.type = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY;

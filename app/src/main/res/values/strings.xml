@@ -15,8 +15,9 @@
     <string name="adblocker_service_description">\"广告助手\"是基于安卓系统的无障碍服务来实现自动跳过广告功能的，为了保证程序能正常工作，打开此服务。</string>
     <string name="about_app_introduction">
         \"广告助手\"可以帮助用户自动跳过一些应用的开屏广告，基于Android的无障碍服务实现。
-        \n\n程序使用以下方法跳过开屏广告：
-        \n\关键字。在应用中查找含有关键字的按钮，如果发现了对应的按钮，自动帮用户点击从而跳过广告；
+        \n\n程序使用以下两种方法跳过开屏广告：
+        \n\n1.关键字。在应用中查找含有关键字的按钮，如果发现了对应的按钮，自动帮用户点击从而跳过广告；
+        \n\n2.位置。在应用中查找预设的位置，如果发现了对应的位置，自动帮用户点击从而跳过广告。
     </string>
 
     <string name="about_copyright">Copyright © 2024 Miaoxin Chen</string>
